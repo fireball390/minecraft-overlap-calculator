@@ -85,13 +85,13 @@ canvas{
 
 <body>
 
-<h1>⛏ Minecraft Chunk Overlap Calculator</h1>
+<h1>Minecraft Chunk Overlap Calculator</h1>
 
 <div class="card">
 
 <h3>Instructions</h3>
 
-Enter coordinates one per line:
+Enter coordinates of chunk one per line:
 
 <br><br>
 
@@ -118,10 +118,6 @@ value="10">
 
 <button onclick="calculate()">
 Calculate
-</button>
-
-<button onclick="copyResults()">
-Copy Results
 </button>
 
 </div>
@@ -571,23 +567,6 @@ function calculate(){
     )
     .textContent =
     result;
-
-}
-
-function copyResults(){
-
-    navigator.clipboard
-    .writeText(
-        document
-        .getElementById(
-            "output"
-        )
-        .textContent
-    );
-
-    alert(
-        "Results copied!"
-    );
 
 }
 
