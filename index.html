@@ -2,108 +2,108 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Minecraft Overlap Calculator</title>
+<title>Minecraft Chunk Overlap Calculator</title>
 
 <style>
-body {
-    background: #1e1e1e;
-    color: white;
-    font-family: Arial, sans-serif;
-    max-width: 900px;
-    margin: auto;
-    padding: 20px;
+body{
+    background:#1e1e1e;
+    color:white;
+    font-family:Arial,sans-serif;
+    max-width:1000px;
+    margin:auto;
+    padding:20px;
 }
 
-.card {
-    background: #2b2b2b;
-    padding: 20px;
-    border-radius: 12px;
-    margin-bottom: 20px;
+h1{
+    text-align:center;
+    color:#55ff55;
 }
 
-h1 {
-    text-align: center;
-    color: #55ff55;
+.card{
+    background:#2b2b2b;
+    padding:20px;
+    margin-bottom:20px;
+    border-radius:10px;
 }
 
-textarea {
-    width: 100%;
-    height: 180px;
-    background: #111;
-    color: white;
-    border: 1px solid #555;
-    border-radius: 8px;
-    padding: 10px;
+textarea{
+    width:100%;
+    height:180px;
+    background:#111;
+    color:white;
+    border:1px solid #555;
+    border-radius:8px;
+    padding:10px;
 }
 
-button {
-    background: #55aa55;
-    color: white;
-    border: none;
-    padding: 12px 20px;
-    margin-top: 10px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 16px;
+input{
+    background:#111;
+    color:white;
+    border:1px solid #555;
+    padding:8px;
+    border-radius:5px;
 }
 
-button:hover {
-    background: #66cc66;
+button{
+    background:#55aa55;
+    color:white;
+    border:none;
+    padding:10px 20px;
+    border-radius:8px;
+    cursor:pointer;
+    margin-right:10px;
 }
 
-input {
-    width: 80px;
-    padding: 8px;
-    background: #111;
-    color: white;
-    border: 1px solid #555;
-    border-radius: 5px;
+button:hover{
+    background:#66cc66;
 }
 
-#output {
-    background: #111;
-    padding: 15px;
-    border-radius: 8px;
-    white-space: pre-wrap;
-    max-height: 500px;
-    overflow-y: auto;
+#output{
+    white-space:pre-wrap;
+    background:#111;
+    padding:15px;
+    border-radius:8px;
+    max-height:400px;
+    overflow:auto;
+}
+
+canvas{
+    background:#111;
+    border:1px solid #555;
+    border-radius:8px;
+    width:100%;
+    max-width:700px;
 }
 </style>
 </head>
-
 <body>
 
 <h1>⛏ Minecraft Chunk Overlap Calculator</h1>
 
 <div class="card">
 <h3>Instructions</h3>
-
 Paste coordinates one per line:
+
+<br><br>
 
 1000 2000<br>
 1150 2140<br>
 1080 2050
-
 </div>
 
 <div class="card">
 
-<label>Render Distance (chunks): </label>
+<label>Render Distance:</label>
 <input id="renderDistance" type="number" value="10">
 
 <br><br>
 
 <textarea id="coords"></textarea>
 
-<br>
+<br><br>
 
-<button onclick="calculate()">
-Calculate Overlap
-</button>
-
-<button onclick="copyResults()">
-Copy Results
-</button>
+<button onclick="calculate()">Calculate</button>
+<button onclick="copyResults()">Copy Results</button>
 
 </div>
 
@@ -114,100 +114,153 @@ No calculation yet.
 </div>
 </div>
 
+<div class="card">
+<h3>Chunk Map</h3>
+<canvas id="chunkMap" width="700" height="700"></canvas>
+</div>
+
 <script>
 
-function calculate() {
+function drawMap(overlap){
 
-    let rd =
-        parseInt(
-            document.getElementById("renderDistance").value
+    const canvas=document.getElementById("chunkMap");
+    const ctx=canvas.getContext("2d");
+
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    if(!overlap || overlap.size===0)return;
+
+    let chunks=[...overlap].map(x=>x.split(",").map(Number));
+
+    let xs=chunks.map(x=>x[0]);
+    let zs=chunks.map(x=>x[1]);
+
+    let minX=Math.min(...xs);
+    let maxX=Math.max(...xs);
+
+    let minZ=Math.min(...zs);
+    let maxZ=Math.max(...zs);
+
+    let width=maxX-minX+1;
+    let height=maxZ-minZ+1;
+
+    let size=Math.min(
+        canvas.width/width,
+        canvas.height/height
+    );
+
+    chunks.forEach(chunk=>{
+
+        let x=(chunk[0]-minX)*size;
+        let z=(chunk[1]-minZ)*size;
+
+        ctx.fillStyle="#55ff55";
+
+        ctx.fillRect(
+            x,
+            z,
+            size-1,
+            size-1
         );
 
-    let lines =
+    });
+
+}
+
+function calculate(){
+
+    const rd=parseInt(
+        document.getElementById(
+            "renderDistance"
+        ).value
+    );
+
+    const lines=
         document
-            .getElementById("coords")
-            .value
-            .trim()
-            .split("\n");
+        .getElementById("coords")
+        .value
+        .trim()
+        .split("\n");
 
-    let overlap = null;
+    let overlap=null;
 
-    for (let line of lines) {
+    for(let line of lines){
 
-        let parts =
+        let parts=
             line.trim().split(/\s+/);
 
-        if (parts.length < 2) continue;
+        if(parts.length<2)continue;
 
-        let x = parseInt(parts[0]);
-        let z = parseInt(parts[1]);
+        let x=parseInt(parts[0]);
+        let z=parseInt(parts[1]);
 
-        let chunkX = Math.floor(x / 16);
-        let chunkZ = Math.floor(z / 16);
+        let chunkX=Math.floor(x/16);
+        let chunkZ=Math.floor(z/16);
 
-        let area = new Set();
+        let area=new Set();
 
-        for (let dx = -rd; dx <= rd; dx++) {
-            for (let dz = -rd; dz <= rd; dz++) {
+        for(let dx=-rd;dx<=rd;dx++){
+            for(let dz=-rd;dz<=rd;dz++){
 
                 area.add(
-                    (chunkX + dx) +
-                    "," +
-                    (chunkZ + dz)
+                    (chunkX+dx)+","+
+                    (chunkZ+dz)
                 );
 
             }
         }
 
-        if (overlap === null) {
-            overlap = area;
-        } else {
-            overlap =
+        if(overlap===null){
+            overlap=area;
+        }else{
+            overlap=
                 new Set(
-                    [...overlap].filter(
-                        v => area.has(v)
+                    [...overlap]
+                    .filter(
+                        c=>area.has(c)
                     )
                 );
         }
     }
 
-    if (!overlap || overlap.size === 0) {
+    if(!overlap || overlap.size===0){
 
         document.getElementById(
             "output"
-        ).textContent =
-        "No overlapping chunks found.";
+        ).textContent=
+        "No overlap found.";
 
         return;
     }
 
-    let result =
-        "Possible Overlap Chunks: "
-        + overlap.size +
+    let result=
+        "Possible Chunks: "+
+        overlap.size+
         "\n\n";
 
-    overlap.forEach(chunk => {
+    overlap.forEach(chunk=>{
 
-        let [cx, cz] =
+        let [cx,cz]=
             chunk.split(",").map(Number);
 
-        let centerX =
-            cx * 16 + 8;
-
-        let centerZ =
-            cz * 16 + 8;
-
         result +=
-            `Chunk ${cx}, ${cz} | Center ${centerX}, ${centerZ}\n`;
+        `Chunk ${cx}, ${cz} | Center ${
+            cx*16+8
+        }, ${
+            cz*16+8
+        }\n`;
 
     });
 
+    drawMap(overlap);
+
     document.getElementById(
         "output"
-    ).textContent = result;
+    ).textContent=result;
+
 }
 
-function copyResults() {
+function copyResults(){
 
     navigator.clipboard.writeText(
         document.getElementById(
@@ -216,6 +269,7 @@ function copyResults() {
     );
 
     alert("Results copied!");
+
 }
 
 </script>
