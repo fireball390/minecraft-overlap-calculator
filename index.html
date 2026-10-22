@@ -42,6 +42,7 @@ input{
     color:white;
     border:1px solid #555;
     padding:8px;
+    border-radius:5px;
 }
 
 button{
@@ -51,7 +52,7 @@ button{
     padding:10px 15px;
     border-radius:8px;
     cursor:pointer;
-    margin:3px;
+    margin-right:10px;
 }
 
 button:hover{
@@ -69,94 +70,14 @@ canvas{
     padding:10px;
     border-radius:8px;
     white-space:pre-wrap;
-    max-height:350px;
+    max-height:300px;
     overflow:auto;
 }
-window.onload = function(){
-  const canvas =
-        document.getElementById("chunkMap");
 
-    canvas.addEventListener("wheel",function(e){
-
-        e.preventDefault();
-
-        if(e.deltaY < 0){
-            zoom += 2;
-        }else{
-            zoom = Math.max(4,zoom-2);
-        }
-
-        if(currentOverlap){
-            drawMap(
-                currentOverlap,
-                currentCenters
-            );
-        }
-
-    });
-canvas.addEventListener("mousedown",function(e){
-
-    isDragging=true;
-
-    dragStartX=e.clientX;
-    dragStartY=e.clientY;
-
-});
-
-canvas.addEventListener("mouseup",function(){
-
-    isDragging=false;
-
-});
-
-canvas.addEventListener("mouseleave",function(){
-
-    isDragging=false;
-
-});
-
-canvas.addEventListener("mousemove",function(e){
-
-    if(isDragging){
-
-        offsetX +=
-            e.clientX-dragStartX;
-
-        offsetY +=
-            e.clientY-dragStartY;
-
-        dragStartX=e.clientX;
-        dragStartY=e.clientY;
-
-        drawMap(
-            currentOverlap,
-            currentCenters
-        );
-    }
-
-});
-};
 #hoverInfo{
     margin-top:10px;
     color:#ffff55;
     font-weight:bold;
-}
-
-.legend{
-    margin-top:10px;
-}
-
-.legend span{
-    display:inline-block;
-    margin-right:15px;
-}
-
-.green{
-    color:#55ff55;
-}
-
-.gold{
-    color:#ffcc55;
 }
 
 </style>
@@ -183,7 +104,11 @@ Enter coordinates one per line:
 <div class="card">
 
 Render Distance:
-<input id="renderDistance" type="number" value="10">
+
+<input
+id="renderDistance"
+type="number"
+value="10">
 
 <br><br>
 
@@ -191,30 +116,37 @@ Render Distance:
 
 <br><br>
 
-<button onclick="calculate()">Calculate</button>
-<button onclick="copyResults()">Copy Results</button>
-<button onclick="zoomIn()">Zoom +</button>
-<button onclick="zoomOut()">Zoom -</button>
+<button onclick="calculate()">
+Calculate
+</button>
+
+<button onclick="copyResults()">
+Copy Results
+</button>
 
 </div>
-    
+
 <div class="card">
 
 <h3>Chunk Map</h3>
 
-<canvas id="chunkMap" width="900" height="700"></canvas>
+<p>
+Scroll = Zoom<br>
+Click + Drag = Pan
+</p>
+
+<canvas
+id="chunkMap"
+width="900"
+height="600">
+</canvas>
 
 <div id="hoverInfo">
 Hover over a chunk
 </div>
 
-<div class="legend">
-<span class="green">■ Overlap Chunk</span>
-<span class="gold">■ Entered Coordinate Chunk</span>
 </div>
 
-</div>
-    
 <div class="card">
 
 <h3>Results</h3>
@@ -227,121 +159,262 @@ No calculation yet.
 
 <script>
 
-let currentOverlap=null;
-let currentCenters=[];
+let currentOverlap = null;
+let currentCenters = [];
 
-let zoom=20;
+let zoom = 20;
 
-let offsetX=100;
-let offsetY=100;
+let offsetX = 100;
+let offsetY = 100;
 
-let isDragging=false;
+let isDragging = false;
 
-let dragStartX=0;
-let dragStartY=0;
+let dragStartX = 0;
+let dragStartY = 0;
 
-function zoomIn(){
+window.onload = function(){
 
-    zoom += 5;
+    const canvas =
+        document.getElementById(
+            "chunkMap"
+        );
 
-    if(currentOverlap)
-        drawMap(currentOverlap,currentCenters);
+    canvas.addEventListener(
+        "wheel",
+        function(e){
 
-}
+            e.preventDefault();
 
-function zoomOut(){
+            if(e.deltaY < 0){
+                zoom += 2;
+            }
+            else{
+                zoom =
+                    Math.max(
+                        4,
+                        zoom - 2
+                    );
+            }
 
-    zoom = Math.max(5,zoom-5);
+            if(currentOverlap){
+                drawMap(
+                    currentOverlap,
+                    currentCenters
+                );
+            }
 
-    if(currentOverlap)
-        drawMap(currentOverlap,currentCenters);
-
-}
-
-function drawMap(overlap,centers){
-
-    currentOverlap=overlap;
-    currentCenters=centers;
-
-    const canvas=document.getElementById("chunkMap");
-    const ctx=canvas.getContext("2d");
-
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-
-    if(!overlap)return;
-
-    const chunks=[...overlap].map(
-        x=>x.split(",").map(Number)
+        }
     );
 
-    const xs=chunks.map(x=>x[0]);
-    const zs=chunks.map(x=>x[1]);
+    canvas.addEventListener(
+        "mousedown",
+        function(e){
 
-    const minX=Math.min(...xs);
-    const minZ=Math.min(...zs);
+            isDragging = true;
 
-    chunks.forEach(chunk=>{
+            dragStartX =
+                e.clientX;
 
-        let x=
-    (chunk[0]-minX)*zoom
-    + offsetX;
+            dragStartY =
+                e.clientY;
 
-let z=
-    (chunk[1]-minZ)*zoom
-    + offsetY;
-        ctx.fillStyle="#55ff55";
+        }
+    );
 
-        ctx.fillRect(
-            x,
-            z,
-            zoom-1,
-            zoom-1
-        );
+    canvas.addEventListener(
+        "mouseup",
+        function(){
 
-    });
+            isDragging = false;
 
-    centers.forEach(chunk=>{
+        }
+    );
 
-        let x=
-    (chunk[0]-minX)*zoom
-    + offsetX;
+    canvas.addEventListener(
+        "mouseleave",
+        function(){
 
-let z=
-    (chunk[1]-minZ)*zoom
-    + offsetY;
-        ctx.fillStyle="#ffcc55";
+            isDragging = false;
 
-        ctx.fillRect(
-            x,
-            z,
-            zoom-1,
-            zoom-1
-        );
+        }
+    );
 
-    });
+    canvas.addEventListener(
+        "mousemove",
+        function(e){
 
-    canvas.onmousemove=function(e){
+            if(isDragging){
 
-        let rect=canvas.getBoundingClientRect();
+                offsetX +=
+                    e.clientX -
+                    dragStartX;
 
-        let mouseX=e.clientX-rect.left;
-        let mouseY=e.clientY-rect.top;
+                offsetY +=
+                    e.clientY -
+                    dragStartY;
 
-        let chunkX=
-    Math.floor(
-        (mouseX-offsetX)/zoom
-    )+minX;
+                dragStartX =
+                    e.clientX;
 
-let chunkZ=
-    Math.floor(
-        (mouseY-offsetY)/zoom
-    )+minZ;
+                dragStartY =
+                    e.clientY;
 
+                drawMap(
+                    currentOverlap,
+                    currentCenters
+                );
+
+            }
+
+        }
+    );
+
+};
+
+function drawMap(
+    overlap,
+    centers
+){
+
+    currentOverlap = overlap;
+    currentCenters = centers;
+
+    const canvas =
         document.getElementById(
+            "chunkMap"
+        );
+
+    const ctx =
+        canvas.getContext("2d");
+
+    ctx.clearRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
+
+    if(!overlap) return;
+
+    let chunks =
+        [...overlap]
+        .map(
+            x =>
+            x.split(",")
+            .map(Number)
+        );
+
+    let xs =
+        chunks.map(
+            c => c[0]
+        );
+
+    let zs =
+        chunks.map(
+            c => c[1]
+        );
+
+    let minX =
+        Math.min(...xs);
+
+    let minZ =
+        Math.min(...zs);
+
+    chunks.forEach(chunk => {
+
+        let x =
+            (chunk[0]-minX)
+            * zoom
+            + offsetX;
+
+        let z =
+            (chunk[1]-minZ)
+            * zoom
+            + offsetY;
+
+        ctx.fillStyle =
+            "#55ff55";
+
+        ctx.fillRect(
+            x,
+            z,
+            zoom-1,
+            zoom-1
+        );
+
+    });
+
+    centers.forEach(chunk => {
+
+        let x =
+            (chunk[0]-minX)
+            * zoom
+            + offsetX;
+
+        let z =
+            (chunk[1]-minZ)
+            * zoom
+            + offsetY;
+
+        ctx.fillStyle =
+            "#ffcc55";
+
+        ctx.fillRect(
+            x,
+            z,
+            zoom-1,
+            zoom-1
+        );
+
+    });
+
+    canvas.onmousemove =
+    function(e){
+
+        let rect =
+            canvas
+            .getBoundingClientRect();
+
+        let mouseX =
+            e.clientX -
+            rect.left;
+
+        let mouseY =
+            e.clientY -
+            rect.top;
+
+        let chunkX =
+            Math.floor(
+                (
+                    mouseX -
+                    offsetX
+                )
+                / zoom
+            ) + minX;
+
+        let chunkZ =
+            Math.floor(
+                (
+                    mouseY -
+                    offsetY
+                )
+                / zoom
+            ) + minZ;
+
+        document
+        .getElementById(
             "hoverInfo"
-        ).innerText=
-        `Chunk: ${chunkX}, ${chunkZ}
-Center Block: ${chunkX*16+8}, ${chunkZ*16+8}`;
+        )
+        .innerText =
+
+        "Chunk: "
+        + chunkX
+        + ", "
+        + chunkZ
+        + " | Center Block: "
+        + (chunkX*16+8)
+        + ", "
+        + (chunkZ*16+8);
 
     };
 
@@ -349,118 +422,172 @@ Center Block: ${chunkX*16+8}, ${chunkZ*16+8}`;
 
 function calculate(){
 
-    let rd=parseInt(
-        document.getElementById(
-            "renderDistance"
-        ).value
-    );
+    const rd =
+        parseInt(
+            document
+            .getElementById(
+                "renderDistance"
+            ).value
+        );
 
-    let lines=
-        document.getElementById(
+    const lines =
+        document
+        .getElementById(
             "coords"
-        ).value
+        )
+        .value
         .trim()
         .split("\n");
 
-    let overlap=null;
+    let overlap = null;
 
-    let centers=[];
+    let centers = [];
 
     for(let line of lines){
 
-        let parts=line.trim().split(/\s+/);
+        let parts =
+            line.trim()
+            .split(/\s+/);
 
-        if(parts.length<2)continue;
+        if(parts.length < 2)
+            continue;
 
-        let x=parseInt(parts[0]);
-        let z=parseInt(parts[1]);
+        let x =
+            parseInt(
+                parts[0]
+            );
 
-        let chunkX=Math.floor(x/16);
-        let chunkZ=Math.floor(z/16);
+        let z =
+            parseInt(
+                parts[1]
+            );
+
+        let chunkX =
+            Math.floor(x/16);
+
+        let chunkZ =
+            Math.floor(z/16);
 
         centers.push([
             chunkX,
             chunkZ
         ]);
 
-        let area=new Set();
+        let area =
+            new Set();
 
-        for(let dx=-rd;dx<=rd;dx++){
+        for(
+            let dx=-rd;
+            dx<=rd;
+            dx++
+        ){
 
-            for(let dz=-rd;dz<=rd;dz++){
+            for(
+                let dz=-rd;
+                dz<=rd;
+                dz++
+            ){
 
                 area.add(
-                    (chunkX+dx)+
-                    ","+
-                    (chunkZ+dz)
+                    (chunkX+dx)
+                    + ","
+                    + (chunkZ+dz)
                 );
 
             }
 
         }
 
-        if(overlap===null){
+        if(overlap === null){
 
-            overlap=area;
+            overlap = area;
 
-        }else{
+        }
+        else{
 
-            overlap=
-            new Set(
-                [...overlap]
-                .filter(
-                    x=>area.has(x)
-                )
-            );
+            overlap =
+                new Set(
+                    [...overlap]
+                    .filter(
+                        c =>
+                        area.has(c)
+                    )
+                );
 
         }
 
     }
 
-    if(!overlap || overlap.size===0){
+    if(
+        !overlap
+        ||
+        overlap.size===0
+    ){
 
-        document.getElementById(
+        document
+        .getElementById(
             "output"
-        ).textContent=
+        )
+        .textContent =
         "No overlap found.";
 
         return;
 
     }
 
-    let result=
-        "Possible Chunks: "+
-        overlap.size+
-        "\n\n";
+    let result =
+        "Possible Chunks: "
+        + overlap.size
+        + "\n\n";
 
-    overlap.forEach(chunk=>{
+    overlap.forEach(chunk => {
 
-        let [cx,cz]=
-        chunk.split(",").map(Number);
+        let [cx,cz] =
+            chunk
+            .split(",")
+            .map(Number);
 
-        result+=
-        `Chunk ${cx}, ${cz}
-Center ${cx*16+8}, ${cz*16+8}\n`;
+        result +=
+        "Chunk "
+        + cx
+        + ", "
+        + cz
+        + " | Center "
+        + (cx*16+8)
+        + ", "
+        + (cz*16+8)
+        + "\n";
 
     });
 
-    document.getElementById(
-        "output"
-    ).textContent=result;
+    drawMap(
+        overlap,
+        centers
+    );
 
-    drawMap(overlap,centers);
+    document
+    .getElementById(
+        "output"
+    )
+    .textContent =
+    result;
 
 }
 
 function copyResults(){
 
-    navigator.clipboard.writeText(
-        document.getElementById(
+    navigator.clipboard
+    .writeText(
+        document
+        .getElementById(
             "output"
-        ).textContent
+        )
+        .textContent
     );
 
-    alert("Results copied!");
+    alert(
+        "Results copied!"
+    );
 
 }
 
