@@ -72,7 +72,70 @@ canvas{
     max-height:350px;
     overflow:auto;
 }
+window.onload = function(){
+  const canvas =
+        document.getElementById("chunkMap");
 
+    canvas.addEventListener("wheel",function(e){
+
+        e.preventDefault();
+
+        if(e.deltaY < 0){
+            zoom += 2;
+        }else{
+            zoom = Math.max(4,zoom-2);
+        }
+
+        if(currentOverlap){
+            drawMap(
+                currentOverlap,
+                currentCenters
+            );
+        }
+
+    });
+canvas.addEventListener("mousedown",function(e){
+
+    isDragging=true;
+
+    dragStartX=e.clientX;
+    dragStartY=e.clientY;
+
+});
+
+canvas.addEventListener("mouseup",function(){
+
+    isDragging=false;
+
+});
+
+canvas.addEventListener("mouseleave",function(){
+
+    isDragging=false;
+
+});
+
+canvas.addEventListener("mousemove",function(e){
+
+    if(isDragging){
+
+        offsetX +=
+            e.clientX-dragStartX;
+
+        offsetY +=
+            e.clientY-dragStartY;
+
+        dragStartX=e.clientX;
+        dragStartY=e.clientY;
+
+        drawMap(
+            currentOverlap,
+            currentCenters
+        );
+    }
+
+});
+};
 #hoverInfo{
     margin-top:10px;
     color:#ffff55;
@@ -134,17 +197,7 @@ Render Distance:
 <button onclick="zoomOut()">Zoom -</button>
 
 </div>
-
-<div class="card">
-
-<h3>Results</h3>
-
-<div id="output">
-No calculation yet.
-</div>
-
-</div>
-
+    
 <div class="card">
 
 <h3>Chunk Map</h3>
@@ -161,12 +214,31 @@ Hover over a chunk
 </div>
 
 </div>
+    
+<div class="card">
+
+<h3>Results</h3>
+
+<div id="output">
+No calculation yet.
+</div>
+
+</div>
 
 <script>
 
 let currentOverlap=null;
 let currentCenters=[];
+
 let zoom=20;
+
+let offsetX=100;
+let offsetY=100;
+
+let isDragging=false;
+
+let dragStartX=0;
+let dragStartY=0;
 
 function zoomIn(){
 
@@ -210,9 +282,13 @@ function drawMap(overlap,centers){
 
     chunks.forEach(chunk=>{
 
-        let x=(chunk[0]-minX)*zoom;
-        let z=(chunk[1]-minZ)*zoom;
+        let x=
+    (chunk[0]-minX)*zoom
+    + offsetX;
 
+let z=
+    (chunk[1]-minZ)*zoom
+    + offsetY;
         ctx.fillStyle="#55ff55";
 
         ctx.fillRect(
@@ -226,9 +302,13 @@ function drawMap(overlap,centers){
 
     centers.forEach(chunk=>{
 
-        let x=(chunk[0]-minX)*zoom;
-        let z=(chunk[1]-minZ)*zoom;
+        let x=
+    (chunk[0]-minX)*zoom
+    + offsetX;
 
+let z=
+    (chunk[1]-minZ)*zoom
+    + offsetY;
         ctx.fillStyle="#ffcc55";
 
         ctx.fillRect(
@@ -248,10 +328,14 @@ function drawMap(overlap,centers){
         let mouseY=e.clientY-rect.top;
 
         let chunkX=
-            Math.floor(mouseX/zoom)+minX;
+    Math.floor(
+        (mouseX-offsetX)/zoom
+    )+minX;
 
-        let chunkZ=
-            Math.floor(mouseY/zoom)+minZ;
+let chunkZ=
+    Math.floor(
+        (mouseY-offsetY)/zoom
+    )+minZ;
 
         document.getElementById(
             "hoverInfo"
